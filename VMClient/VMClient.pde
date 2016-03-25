@@ -1,16 +1,16 @@
-// Example 19-5: Client reading values as rotation value
-
 // Import the net libraries
 import processing.net.*;
 // Declare a client
 Client client;
 // The data we will read from the server
-int data;
-
+byte[] frame;
+byte[][] images;
+PImage textureMap;
 void setup() {
-  size(200, 200);
+  size(600, 600);
   // Create the Client
   client = new Client(this, "127.0.0.1", 5204);
+  rectMode(CENTER);
 }
 
 // Let's look at this with the client event callback function

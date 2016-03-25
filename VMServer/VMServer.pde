@@ -8,22 +8,19 @@ Server server;
 int data = 0;
 int imgSize = 512;
 int bufferSize;
-PImage[] frames;
+byte[][] frames;
 int currentFrame;
 
 
 void setup() {
   size(imgSize, imgSize);
   frameRate(1);
+  colorMode(RGB, 255);
   // Create the Server on port 5204
   server = new Server(this, 5204);
   currentFrame = 0;
   bufferSize = 3;
-  frames = new PImage[bufferSize];
-  for (int i = 0; i < frames.length; ++i) {
-    frames[i] = createImage(imgSize, imgSize, RGB);
-  }
-  
+  frames = new byte[bufferSize][imgSize * imgSize * 3];  
 }
 
 void draw() {
@@ -38,14 +35,23 @@ void draw() {
   loadPixels();
   int dimension = imgSize * imgSize;
   //Load pixels for the image objects
-  frames[currentFrame].loadPixels();
+  int j = 0;
   for (int i = 0; i < dimension; i++) { 
-    frames[currentFrame].pixels[i] = pixels[i]; 
+    // Using "right shift" as a faster method than red(), green(), and blue()
+    color argb = pixels[i];
+    int a = (argb >> 24) & 0xFF;
+    int r = (argb >> 16) & 0xFF;  // Faster way of getting red(argb)
+    int g = (argb >> 8) & 0xFF;   // Faster way of getting green(argb)
+    int b = argb & 0xFF;          // Faster way of getting blue(argb)
+    
+    frames[currentFrame][j++] = byte(r);
+    frames[currentFrame][j++] = byte(g); 
+    frames[currentFrame][j++] = byte(b);
   } 
-  frames[currentFrame].updatePixels();
-  frames[currentFrame].save("test" + currentFrame + ".png");
+  
+  
   currentFrame = (currentFrame + 1) % bufferSize;
-  //server.write(data);
+  server.write(frames[currentFrame]);
 }
 
 // The serverEvent function is called whenever a new client connects.
