@@ -7,8 +7,10 @@ byte[] byteBuffer;
 // The image buffer ofr the data
 PImage[] images;
 int currentImage;
+int currentSavedImage;
 int imagesNumber;
 PImage textureMap;
+int imgSize;
 
 //For controlling the rotation
 float rotx = 0.0;
@@ -19,7 +21,9 @@ void setup() {
   // Create the Client
   //client = new Client(this, "127.0.0.1", 5204);
   currentImage = 0;
+  currentSavedImage = 0;
   imagesNumber = 3;
+  imgSize = 512;
   //rectMode(CENTER);
   colorMode(RGB, 255);
   textureMode(NORMALIZED);
@@ -42,6 +46,14 @@ void draw() {
 void clientEvent(Client client) {
   int byteCount = 0;
   byteCount = client.readBytes(byteBuffer);
+  int desiredSize = imgSize * imgSize * 3;
+  if (byteCount == desiredSize) {
+    writeImage();
+    //Increment the number of saved images
+    currentSavedImage = (currentSavedImage + 1) % imagesNumber;
+  } else {
+    println("Incomplate image data received")
+  }
 }
 
 
