@@ -1,35 +1,57 @@
-// Import the net libraries
 import processing.net.*;
 // Declare a client
 Client client;
+
 // The data we will read from the server
-byte[] frame;
-byte[][] images;
+byte[] byteBuffer;
+// The image buffer ofr the data
+PImage[] images;
 PImage textureMap;
+
+//For controlling the rotation
+float rotx = 0.0;
+float roty = 0.0;
+
 void setup() {
-  size(600, 600);
+  size(600, 360, P3D);
   // Create the Client
-  client = new Client(this, "127.0.0.1", 5204);
-  rectMode(CENTER);
+  //client = new Client(this, "127.0.0.1", 5204);
+  textureMap =  loadImage("test2.png");
+  //rectMode(CENTER);
+  colorMode(RGB, 255);
+  textureMode(NORMALIZED);
+  frameRate(15);
+  noStroke();
+}
+
+void draw() {
+  background(0);
+  translate(width / 2.0, height / 2.0, -100.0);
+  rotateX(rotx);
+  rotateY(roty);
+  scale(90.0);
+  drawShape();
 }
 
 // Let's look at this with the client event callback function
 void clientEvent(Client client) {
-  data = client.read();
-}
-
-void draw() {
-  background(255);
-  stroke(0);
-  fill(175);
-  translate(width/2, height/2);
-
-  // The incoming data is used to rotate a square.
-  float angle = map(data, 0, 255, 0, TWO_PI);
-  rotate(angle); 
-
-  rectMode(CENTER);
-  rect(0, 0, 64, 64);
+  int byteCount = 0;
+  byteCount = client.readBytes(byteBuffer);
 }
 
 
+void mouseDragged() {
+  float rate = 0.01;
+  rotx += (pmouseY-mouseY) * rate;
+  roty += (mouseX-pmouseX) * rate;
+}
+
+void drawShape() {
+  beginShape(QUADS);
+  texture(textureMap);
+    vertex(-1, -1,  0, 0, 0);
+    vertex( 1, -1,  0, 1, 0);
+    vertex( 1,  1,  0, 1, 1);
+    vertex(-1,  1,  0, 0, 1);
+  endShape();
+}
