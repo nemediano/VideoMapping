@@ -1,6 +1,3 @@
-// Example 19-3: Server broadcasting a number (0-255)
-
-// Import the net libraries
 import processing.net.*;
 
 // Declare a server
@@ -24,6 +21,9 @@ void setup() {
 }
 
 void draw() {
+  /*********************************************/
+  /* Here we produce the frame we want to save */
+  /*********************************************/
   background(255);
   // Display data
   textAlign(CENTER);
@@ -31,6 +31,18 @@ void draw() {
   fill(0);
   text(data, width/2, height/2);
   data++;
+  /*********************************************/
+  /*********************************************/
+  
+  //We send the buffer. We are sending the previous frame
+  server.write(frames[currentFrame]);
+  //Now we grab the current screen
+  grabScreen();
+  //We increment the buffer counter
+  currentFrame = (currentFrame + 1) % bufferSize;
+}
+
+void grabScreen() {
   //Load pixels from the frame
   loadPixels();
   int dimension = imgSize * imgSize;
@@ -47,11 +59,7 @@ void draw() {
     frames[currentFrame][j++] = byte(r);
     frames[currentFrame][j++] = byte(g); 
     frames[currentFrame][j++] = byte(b);
-  } 
-  
-  
-  currentFrame = (currentFrame + 1) % bufferSize;
-  server.write(frames[currentFrame]);
+  }
 }
 
 // The serverEvent function is called whenever a new client connects.
