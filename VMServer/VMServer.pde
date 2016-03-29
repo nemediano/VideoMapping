@@ -3,7 +3,7 @@ import processing.net.*;
 // Declare a server
 Server server;
 int data = 0;
-int imgSize = 32;
+int imgSize = 64;
 int bufferSize;
 byte[][] frames;
 int currentFrame;
@@ -11,7 +11,7 @@ boolean haveClients;
 
 void setup() {
   size(imgSize, imgSize);
-  //frameRate(24);
+  frameRate(30);
   colorMode(RGB, 255);
   // Create the Server on port 5204
   server = new Server(this, 5204);
@@ -28,7 +28,7 @@ void draw() {
   background(255);
   // Display data
   textAlign(CENTER);
-  textSize(64);
+  textSize(20);
   fill(0);
   text(data, width/2, height/2);
   data++;
@@ -41,7 +41,7 @@ void draw() {
     //We send the buffer. The frame we just grab
     server.write(frames[currentFrame]);
     //We tried to wrote:
-    println("We send " + frames[currentFrame].length + "bytes");
+    //println("We send " + frames[currentFrame].length + "bytes");
     //We increment the buffer counter
     currentFrame = (currentFrame + 1) % bufferSize;
   }

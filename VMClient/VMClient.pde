@@ -10,7 +10,7 @@ int currentImage = 0;
 int currentSavedImage = 1;
 int imagesNumber = 2;
 PImage textureMap;
-int imgSize = 32;
+int imgSize = 64;
 boolean haveServer = false;
 boolean allocateImageBuffer = false;
 //For controlling the rotation
@@ -51,13 +51,13 @@ void grabImage() {
   byteCount = client.readBytes(byteBuffer);
   int desiredSize = imgSize * imgSize * 3;
   if (byteCount == desiredSize) {
-    println("Image data received!!");
+    //println("Image data received!!");
     writeImage();
     //Increment the number of saved images
     currentSavedImage = (currentSavedImage + 1) % imagesNumber;
     currentImage = (currentImage + 1) % imagesNumber;
   } else {
-    println("Incomplete image data received");
+    //println("Incomplete image data received");
   }
 }
 
@@ -84,16 +84,16 @@ void clientEvent(Client client) {
 void writeImage() {
   color c = color(255, 0, 0);
   int dimensions = imgSize * imgSize;
-  println("before load pixels");
+  //println("before load pixels");
   images[currentSavedImage].loadPixels();
-  println("after load pixels");
+  //println("after load pixels");
   int r = 0, g = 0, b = 0;
   int j = 0;
-  println("Number of pixels:" + images[currentSavedImage].pixels.length);
+  //println("Number of pixels:" + images[currentSavedImage].pixels.length);
   for (int i = 0; i < dimensions; ++i) {
-    r = byteBuffer[j++] + 128;
-    g = byteBuffer[j++] + 128;
-    b = byteBuffer[j++] + 128;
+    r = byteBuffer[j++];
+    g = byteBuffer[j++];
+    b = byteBuffer[j++];
     //println("R = " + r + " G = " + g + "B = " + b);
     c = 0xFF000000 | (r << 16) | (g << 8) | b;
     images[currentSavedImage].pixels[i] = c;
