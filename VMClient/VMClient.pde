@@ -8,10 +8,11 @@ byte[] byteBuffer;
 PImage[] images;
 int currentImage;
 int currentSavedImage;
-int imagesNumber;
+int imagesNumber = 2;
 PImage textureMap;
 int imgSize;
-
+boolean haveServer;
+boolean allocateImageBuffer = false;
 //For controlling the rotation
 float rotx = 0.0;
 float roty = 0.0;
@@ -19,43 +20,81 @@ float roty = 0.0;
 void setup() {
   size(600, 360, P3D);
   // Create the Client
-  //client = new Client(this, "127.0.0.1", 5204);
+  client = new Client(this, "127.0.0.1", 5204);
   currentImage = 0;
-  currentSavedImage = 0;
-  imagesNumber = 3;
+  currentSavedImage = 1;
   imgSize = 512;
-  //rectMode(CENTER);
   colorMode(RGB, 255);
   textureMode(NORMALIZED);
-  frameRate(15);
   noStroke();
+  //Image to show if there is no server
+  textureMap =  loadImage("test.jpg");
+  
 }
 
 void draw() {
-  textureMap =  loadImage("test" + str(currentImage) + ".png");
+  
   background(0);
   translate(width / 2.0, height / 2.0, -100.0);
   rotateX(rotx);
   rotateY(roty);
   scale(90.0);
-  drawShape(textureMap);
-  currentImage = (currentImage + 1) % imagesNumber;
+  
+  if (haveServer) {
+    drawShape(images[currentImage]);
+  } else {
+    drawShape(textureMap);
+  }
 }
 
 // Let's look at this with the client event callback function
 void clientEvent(Client client) {
   int byteCount = 0;
+  if (!allocateImageBuffer) {
+    images = new PImage[imagesNumber];
+    println("We created the images array of size: " + images.length);
+    for (int i = 0; i < images.length; ++i) {
+      images[i] = createImage(imgSize, imgSize, RGB);
+      println("We allocated the images array");
+    }
+    //Allocate memorry for the byte buffer to store images
+    byteBuffer = new byte[imgSize * imgSize * 3];
+    allocateImageBuffer = true;
+  }
   byteCount = client.readBytes(byteBuffer);
   int desiredSize = imgSize * imgSize * 3;
   if (byteCount == desiredSize) {
+    println("We are connected and with the correct nubmer of bytes");
     writeImage();
     //Increment the number of saved images
     currentSavedImage = (currentSavedImage + 1) % imagesNumber;
+    currentImage = (currentImage + 1) % imagesNumber;
   } else {
-    println("Incomplate image data received")
+    println("Incomplate image data received");
   }
+  haveServer = true;
 }
 
+/* Update the currentSaved image using the data in byteBuffer */
+void writeImage() {
+  color c = color(0);
+  int dimensions = imgSize * imgSize;
+  println("before load pixels");
+  images[currentSavedImage].loadPixels();
+  println("after load pixels");
+  int r = 0, g = 0, b = 0;
+  int j = 0;
+  println("Number of pixels:" + images[currentSavedImage].pixels.length);
+  for (int i = 0; i < dimensions; ++i) {
+    //r = byteBuffer[j++];
+    //g = byteBuffer[j++];
+    //b = byteBuffer[j++];
+    println("R = " + r + " G = " + g + "B = " + b);
+    //c = 0xFF000000 | (r << 16) | (g << 8) | b;
+    images[currentSavedImage].pixels[i] = c;
+  }
+  images[currentSavedImage].updatePixels();
+}
 
 void mouseDragged() {
   float rate = 0.01;
@@ -72,3 +111,4 @@ void drawShape(PImage textMap) {
     vertex(-1,  1,  0, 0, 1);
   endShape();
 }
+
