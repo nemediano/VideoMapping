@@ -3,7 +3,7 @@ import processing.net.*;
 // Declare a server
 Server server;
 int data = 0;
-int imgSize = 512;
+int imgSize = 32;
 int bufferSize;
 byte[][] frames;
 int currentFrame;
@@ -11,7 +11,7 @@ boolean haveClients;
 
 void setup() {
   size(imgSize, imgSize);
-  frameRate(1);
+  //frameRate(24);
   colorMode(RGB, 255);
   // Create the Server on port 5204
   server = new Server(this, 5204);
