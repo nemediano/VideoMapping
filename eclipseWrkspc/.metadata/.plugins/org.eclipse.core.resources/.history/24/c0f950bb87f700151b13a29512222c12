@@ -1,0 +1,94 @@
+package videomap;
+
+import java.io.File;
+import java.net.Inet4Address;
+import java.net.ServerSocket;
+import java.net.UnknownHostException;
+import java.util.regex.Pattern;
+
+public class ImageServer {
+	private int port;
+	private String address;
+	private File folder;
+	private ServerSocket socket;
+	private File[] filesToSend;
+	
+	public ImageServer(String address, int port, String folder) {	
+		setAddress(address);
+		setPort(port);
+		setFolder(folder);
+	}
+	
+	public ImageServer(String folder) {
+		try {
+			setAddress(Inet4Address.getLocalHost().getHostAddress());
+		} catch (UnknownHostException e) {
+			System.out.println("Invalid adress");
+			e.printStackTrace();
+		}
+		setPort(8888);
+		setFolder(folder);
+	}
+	
+	public ImageServer() {
+		try {
+			setAddress(Inet4Address.getLocalHost().getHostAddress());
+		} catch (UnknownHostException e) {
+			System.out.println("Invalid adress");
+			e.printStackTrace();
+		}
+		setPort(8888);
+		setFolder("data" + File.separatorChar);
+	}
+
+	public boolean hasConnections() {
+		return true;
+	}
+	
+	public void start() {
+		
+	}
+	
+	public void stop() {
+		
+	}
+	
+	public int getPort() {
+		return port;
+	}
+	
+	public String getAddress() {
+		return address;
+	}
+	
+	public String getFolder() {
+		return folder.getAbsolutePath();
+	}
+	
+	private void setPort(int port) {
+		if (port > 1024 && port < 65000) {
+			this.port = port;
+		}
+	}
+	
+	private void setAddress(String addres) {		
+		final String IPADDRESS_PATTERN = 
+				"^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+				"([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+				"([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
+				"([01]?\\d\\d?|2[0-4]\\d|25[0-5])$";
+		final Pattern pattern = Pattern.compile(IPADDRESS_PATTERN);
+	    if (pattern.matcher(addres).matches()) {
+	        this.address = addres;
+	    }
+	}
+	
+	private void setFolder (String folder) {
+		File file = new File(folder);
+		if (file.exists() && file.canRead()) {
+			this.folder = new File(folder);
+		}
+	}
+	
+	private void updateFileList(String regex)
+}

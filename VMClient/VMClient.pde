@@ -24,9 +24,9 @@ void setup() {
   colorMode(RGB, 255);
   textureMode(NORMALIZED);
   noStroke();
-  frameRate(24);
+  frameRate(15);
   //Image to show if there is no server
-  textureMap =  loadImage("test.jpg");
+  textureMap =  loadImage("test.png");
   
 }
 
@@ -59,6 +59,7 @@ void grabImage() {
   } else {
     //println("Incomplete image data received");
   }
+  client.clear();
 }
 
 // Let's look at this with the client event callback function

@@ -11,7 +11,7 @@ boolean haveClients;
 
 void setup() {
   size(imgSize, imgSize);
-  frameRate(30);
+  frameRate(15);
   colorMode(RGB, 255);
   // Create the Server on port 5204
   server = new Server(this, 5204);
