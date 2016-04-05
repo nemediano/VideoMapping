@@ -1,0 +1,56 @@
+package videomap;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.Socket;
+
+public class ClientHandler {
+	private Socket conection;
+	private int nextFile;
+	private int totalFiles;
+	private byte[] memChunk;
+	
+	public ClientHandler(Socket conection) {
+		if (conection != null) {
+			this.conection = conection;
+		}
+		setTotalFiles(2);
+		
+	}
+	
+	public ClientHandler(Socket conection, int totalFiles) {
+		if (conection != null) {
+			this.conection = conection;
+		}
+		setTotalFiles(totalFiles);
+		
+	}
+	
+	public boolean sendFile(File file) {
+		if (file.isFile() && file.canRead()) {
+			
+		}
+		
+		incrementCounter();
+		return true;
+	}
+	
+	private void incrementCounter() {
+		nextFile++;
+		nextFile %= totalFiles;
+	}
+	
+	public int nextElement() {
+		return nextFile;
+	}
+	
+	public void disconect() throws IOException {
+		conection.close();
+	}
+	
+	public void setTotalFiles(int filesNumber) {
+		if (filesNumber > 0) {
+			this.totalFiles = filesNumber;
+		}
+	}
+}

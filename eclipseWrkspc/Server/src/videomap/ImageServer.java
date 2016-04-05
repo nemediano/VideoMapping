@@ -5,6 +5,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.regex.Pattern;
 
@@ -13,15 +14,14 @@ public class ImageServer {
 	private String address;
 	private String pattern;
 	private File folder;
-	private ServerSocket socket;
 	private File[] filesToSend;
-	private int clients;
+	private int clientsNumber;
+	private ServerSocket server;
 	
-	public ImageServer(String address, int port, String folder) {	
+	public ImageServer(String address, int port, String folder) {
 		setAddress(address);
 		setPort(port);
 		setFolder(folder);
-		clients = 0;
 	}
 	
 	public ImageServer(String folder) {
@@ -33,10 +33,9 @@ public class ImageServer {
 		}
 		setPort(8888);
 		setFolder(folder);
-		clients = 0;
 	}
 	
-	public ImageServer() {
+	public ImageServer(Socket conection) {
 		try {
 			setAddress(Inet4Address.getLocalHost().getHostAddress());
 		} catch (UnknownHostException e) {
@@ -45,33 +44,53 @@ public class ImageServer {
 		}
 		setPort(8888);
 		setFolder("data" + File.separatorChar);
-		clients = 0;
-	}
-
-	public boolean hasConnections() {
-		return clients != 0;
-	}
-	
-	public int getClientsNumber() {
-		return clients;
 	}
 	
 	public void start() {
-		try {
-			socket = new ServerSocket(port);
-		} catch (IOException e) {
-			System.out.println("Could not create server...");
-			e.printStackTrace();
+		boolean listening = true;
+		try  {
+			server = new ServerSocket(port);
+			System.out.println("Image server at: " + this.address);
+			System.out.println("Listening on port: " + this.port);
+			System.out.println("Looking at folder: " + this.folder.getAbsolutePath());
+			updateFileList();
+			System.out.println("There are " + filesToSend.length + " files");
+            while (listening) {
+            	//This is the magic, waits until new client
+                ClientHandler client = new ClientHandler(server.accept());
+                
+                //Add client to collection
+                addClient(client);
+                //Loop the collection serving as long as we had client
+                
+                //termination criteria
+                if (!hasClients()) {
+                	System.out.println("No more clients shouting down server...");
+                	break;
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Could not listen on port " + port);
+            System.exit(-1);
+        }
+	}
+	
+	private void addClient(ClientHandler handler) {
+		if (handler != null) {
+			
 		}
 	}
 	
-	public void stop() {
-		try {
-			socket.close();
-		} catch (IOException e) {
-			System.out.println("Could not close the server...");
-			e.printStackTrace();
-		}
+	public void stop() throws IOException {
+		server.close();
+	}
+	
+	public boolean hasClients() {
+		return clientsNumber != 0;
+	}
+	
+	public int getClientsNumber() {
+		return clientsNumber;
 	}
 	
 	public int getPort() {
