@@ -13,7 +13,7 @@
 	</section>
 	<section name="FatJarPackageWizard">
 		<item value="E:\Work\eclipseWrkspc" key="FatJarPackageWizardPage.ANTSCRIPT_LOCATION"/>
-		<item value="Main - Client" key="FatJarPackageWizardPage.LAUNCH_CONFIGURATION_SELECTION_NAME"/>
+		<item value="Client - Client" key="FatJarPackageWizardPage.LAUNCH_CONFIGURATION_SELECTION_NAME"/>
 		<item value="E:\Work\testDir\Client\VMClient.jar" key="FatJarPackageWizardPage.DESTINATION_PATH_SELECTION"/>
 		<item value="false" key="FatJarPackageWizardPage.ANTSCRIPT_SAVE"/>
 		<item value="1" key="FatJarPackageWizardPage.LIBRARY_HANDLING"/>

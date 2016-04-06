@@ -1,67 +1,63 @@
 package videomap;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-
 
 public class MainServer {
     
-    //final static String INET_ADDR = "224.0.0.3";
-    final static int PORT = 8888;
+    static String internetAdress = "127.0.0.1";
+    static int port = 8888;
+    static String folder = "data" + File.separatorChar;
 
     public static void main(String[] args) throws InterruptedException, IOException {
-        // Get the address that we are going to connect to.
-        //InetAddress addr = InetAddress.getByName(INET_ADDR);
+        parseArguments(args);
+        
+        ImageServer myServer = new ImageServer(internetAdress, port, folder);
     	
-        File[] files = getExistingFiles();
-        FileInputStream fis = null;
-        BufferedInputStream bis = null;
-        //Socket socket = null;
-        ServerSocket server = new ServerSocket(PORT);
-        OutputStream os = null;
-        // Open a new DatagramSocket, which will be used to send the data.
-        //try (DatagramSocket serverSocket = new DatagramSocket()) {
-        try (Socket socket = server.accept()) {
-        	System.out.println("Accepted connection : " + socket);
-            for (int i = 0; i < files.length; i++) {
-                // Create a packet that will contain the data
-                // (in the form of bytes) and send it.
-                byte[] memChunk = new byte[(int) files[i].length()];
-                fis = new FileInputStream(files[i]);
-                bis = new BufferedInputStream(fis);
-                bis.read(memChunk,0,memChunk.length);
-                os = socket.getOutputStream();
-                System.out.println("About to send file: " + files[i].getName() +  " (" + memChunk.length + ")");
-                //DatagramPacket msgPacket = new DatagramPacket(memChunk,
-                //		memChunk.length, addr, PORT);
-                os.write(memChunk, 0, memChunk.length);
-                os.flush();
-                System.out.println("Done");
-                Thread.sleep(500);
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } finally {
-        	if (server != null) server.close();
-        	if (os != null) os.close();
-        }
+        myServer.start();
+        
+        return;
     }
     
-    public static File[] getExistingFiles() {
-    	File curDir = new File("data/");
-    	File[] filesList = curDir.listFiles();
+    public static void parseArguments (String[] args) {
     	
-		return filesList;
+    	for (int i = 0; i < args.length; ++i) {
+    		//Look if they give me the port
+    		if (args[i].equalsIgnoreCase("-p")) {
+    			//See the next sentence
+    			if ((i + 1) < args.length) {
+    				try {
+    					port = Integer.parseInt(args[i + 1]);
+    					++i;
+    				} catch (NumberFormatException e) {
+    					printUsage();
+    					System.exit(-1);
+    				}
+    				
+    			} else {
+    				printUsage();
+    				System.exit(-1);
+    			}
+    		}
+    		//Look if they give me the folder
+    		if (args[i].equalsIgnoreCase("-f")) {
+    			//See the next sentence
+    			if ((i + 1) < args.length) {
+    				folder = args[i + 1];
+    				++i;
+    			} else {
+    				printUsage();
+    				System.exit(-1);
+    			}
+    		}
+    	}
+    	
     }
-
-    public static boolean sendFile(File file) {
-    	return true;
+    
+    public static void printUsage() {
+    	System.out.println("java -jar VMServer.jar [-f <path-to-image-folder>] [-p port]"); 
     }
+    
 }
 
 
