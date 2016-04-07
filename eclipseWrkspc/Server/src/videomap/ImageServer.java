@@ -56,20 +56,22 @@ public class ImageServer {
 		try  {
 			server = new ServerSocket(port);
 			System.out.println("Image server at: " + this.address);
-			System.out.println("Listening on port: " + this.port);
+			System.out.println("Transmiting on port: " + this.port);
 			System.out.println("Looking at folder: " + this.folder.getAbsolutePath());
 			updateFileList();
 			System.out.println("There are " + filesToSend.length + " files");
             while (listening) {
             	//This is the magic, waits until new client
-                ClientHandler client = new ClientHandler(server.accept());
+                ClientHandler client = new ClientHandler(server.accept(), filesToSend.length);
                 
                 //Add client to collection
                 addClient(client);
                 //Loop the collection serving as long as we had client
                 updateFileList();
                 for (ClientHandler c : clients) {
-                	serve(c);
+                	for (int i = 0; i < filesToSend.length; ++i) {
+                		serve(c);
+                	}
                 }
                 
                 //termination criteria
@@ -95,10 +97,9 @@ public class ImageServer {
 	private void serve(ClientHandler client) {
 		int index = 0;
 		try {
-			for (int i = 0; i < this.filesToSend.length; ++i) {
-				index = client.nextElement();
-				client.sendFile(filesToSend[index]);
-			}		
+			
+			index = client.nextElement();
+			client.sendFile(filesToSend[index]);
 			
 		} catch (IOException e) {
 			System.out.println("Could not sent the file: " + filesToSend[index].getAbsolutePath());

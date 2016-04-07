@@ -37,7 +37,7 @@ public class ImageClient {
 		setAddress(address);
 		setPort(port);
 		setFolder("data" + File.separatorChar);
-		setNumFiles(4);
+		setNumFiles(2);
 		setBaseName("img-");
 		currentFile = 0;
 		clientSocket = null;
@@ -100,13 +100,9 @@ public class ImageClient {
 		}
 	}
 	
-	public void receiveFiles() {
-		//This should wait receiving files, 
-		//for testing I'm just going to do a one pass off all the folder
-		for (int i = 0; i < this.numFiles; ++i) {
-			this.receiveNextFile();
-			this.advanceToNextFile();
-		}
+	public void receiveFile() {
+		this.receiveNextFile();
+		this.advanceToNextFile();	
 	}
 	
 	private void receiveNextFile() {
@@ -196,5 +192,12 @@ public class ImageClient {
 	private void advanceToNextFile() {
 		this.currentFile++;
 		this.currentFile %= this.numFiles;
+	}
+	
+	public String getInfo() {
+		String s = "Pointing at folder: " + this.folder.getAbsolutePath()
+		+ "\nExpecting " + this.numFiles + " files";
+		
+		return s;
 	}
 }

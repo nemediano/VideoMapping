@@ -17,7 +17,7 @@ public class ClientHandler {
 		if (conection != null) {
 			this.conection = conection;
 		}
-		setTotalFiles(4);
+		setTotalFiles(2);
 	}
 	
 	public ClientHandler(Socket conection, int totalFiles) {
