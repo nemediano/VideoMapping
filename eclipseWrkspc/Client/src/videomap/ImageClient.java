@@ -110,6 +110,17 @@ public class ImageClient {
 		BufferedOutputStream bos = null;
 		//For receiving the file from server
 		DataInputStream dis = null;
+		//For making sure at writing
+		String tempFilename = getFileName().substring(0, getFileName().lastIndexOf('.')) + ".tmp";
+		
+		//If the next file exist remove it
+		{
+			File test = new File(getFileName());
+			if (test.exists()) {
+				test.delete();
+			}
+		}
+		
 		
 		//Open stream for this file
 		try {
@@ -117,7 +128,7 @@ public class ImageClient {
 				System.out.println("Something very wrong! Did you connect first?");
 			}
 			dis = new DataInputStream(new BufferedInputStream(this.clientSocket.getInputStream()));
-			bos = new BufferedOutputStream(new FileOutputStream(getFileName()));
+			bos = new BufferedOutputStream(new FileOutputStream(tempFilename));
 		} catch (IOException e) {
 			System.out.println("Error trying to receive file: " + getFileName());
 			e.printStackTrace();
@@ -135,17 +146,7 @@ public class ImageClient {
 					currentBytesRead += bytesRead;
 				}
 			} while(currentBytesRead < fileSize);
-			
-//			int bytesRead = is.read(this.buffer, 0, buffer.length);
-//	        int current = bytesRead;
-//	        //Recreate file 
-//	        do {          	
-//	        	bytesRead = is.read(this.buffer, current, Math.min(this.buffer.length - current, fileSize -current));
-//	        	if (bytesRead >= 0) {
-//	        		current += bytesRead;
-//	        	}
-//	        } while(bytesRead > -1); //current < fileSize OR current != fileSize
-			
+						
 	        //Write file into the HD
 	        bos.write(this.buffer, 0, currentBytesRead);
 	        bos.flush();
@@ -158,8 +159,13 @@ public class ImageClient {
 		//Closing stream for this file
 		try {
 			bos.close();
+			//Make sure that this file is finished
+			File tmp = new File(tempFilename);
+			if (tmp.renameTo(new File(getFileName()))) {
+				System.out.println("File received: " + getFileName());
+			}
 		} catch (IOException e) {
-			System.out.println("Error trying to close current file connection");
+			System.out.println("Error trying to close or writtin the current file");
 			e.printStackTrace();
 		}
          
@@ -199,5 +205,9 @@ public class ImageClient {
 		+ "\nExpecting " + this.numFiles + " files";
 		
 		return s;
+	}
+	
+	public boolean terminate() {
+		return false;
 	}
 }

@@ -25,10 +25,12 @@ public class MainClient {
        
        System.out.println(myClient.getInfo());
        
-       //boolean alive = true;
+       boolean alive = true;
        
-       for (int i = 0; i < NUMBER_OF_FILES; ++i) {
+       while (alive) {
     	  myClient.receiveFile();
+    	  
+    	  alive = !myClient.terminate();
        }
     }
     

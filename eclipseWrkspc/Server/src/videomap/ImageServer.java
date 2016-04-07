@@ -52,7 +52,7 @@ public class ImageServer {
 	}
 	
 	public void start() {
-		boolean listening = true;
+		//boolean listening = true;
 		try  {
 			server = new ServerSocket(port);
 			System.out.println("Image server at: " + this.address);
@@ -60,26 +60,26 @@ public class ImageServer {
 			System.out.println("Looking at folder: " + this.folder.getAbsolutePath());
 			updateFileList();
 			System.out.println("There are " + filesToSend.length + " files");
-            while (listening) {
+            //while (listening) {
             	//This is the magic, waits until new client
-                ClientHandler client = new ClientHandler(server.accept(), filesToSend.length);
+            ClientHandler client = new ClientHandler(server.accept(), filesToSend.length);
                 
-                //Add client to collection
-                addClient(client);
-                //Loop the collection serving as long as we had client
-                updateFileList();
-                for (ClientHandler c : clients) {
-                	for (int i = 0; i < filesToSend.length; ++i) {
-                		serve(c);
-                	}
-                }
-                
-                //termination criteria
-                if (!hasClients()) {
-                	System.out.println("No more clients shouting down server...");
-                	listening = false;
-                }
-            }
+            //Add client to collection
+            addClient(client);
+            //Loop the collection serving as long as we had client
+            updateFileList();
+            //for (ClientHandler c : clients) {
+            	
+        	while(true) {
+        		serve(client);
+        	}
+            
+            
+            //termination criteria
+            //if (!hasClients()) {
+            //	System.out.println("No more clients shouting down server...");
+            //	listening = false;
+            //}
         } catch (IOException e) {
             System.err.println("Could not listen on port " + port);
             System.exit(-1);
