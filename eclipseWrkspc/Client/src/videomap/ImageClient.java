@@ -1,10 +1,11 @@
 package videomap;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.regex.Pattern;
@@ -18,8 +19,8 @@ public class ImageClient {
 	private String basename;
 	private int currentFile;
 	private Socket clientSocket;
-	private byte[] memChunck;
-	private static int CHUNK_SIZE = (int) (1024 * 1024 * 0.5);
+	private byte[] buffer;
+	private static int BUFFER_SIZE = (int) (1024 * 1024 * 1.0);
 	
 	public ImageClient(String address, int port, String folder, int totalFiles, String baseName) {
 		setAddress(address);
@@ -29,18 +30,18 @@ public class ImageClient {
 		setBaseName(baseName);
 		currentFile = 0;
 		clientSocket = null;
-		memChunck = new byte[CHUNK_SIZE];
+		buffer = new byte[BUFFER_SIZE];
 	}
 	
 	public ImageClient(String address, int port) {
 		setAddress(address);
 		setPort(port);
 		setFolder("data" + File.separatorChar);
-		setNumFiles(2);
+		setNumFiles(4);
 		setBaseName("img-");
 		currentFile = 0;
 		clientSocket = null;
-		memChunck = new byte[CHUNK_SIZE];
+		buffer = new byte[BUFFER_SIZE];
 	}
 	
 	public void setPort(int port) {
@@ -88,6 +89,7 @@ public class ImageClient {
 		try {
 			System.out.println("Connecting...");
 			this.clientSocket = new Socket(address, port);
+			
 			System.out.println("Connection succeded!");
 		} catch (UnknownHostException e) {
 			System.out.println("Cannot locate the server: " + address);
@@ -103,36 +105,53 @@ public class ImageClient {
 		//for testing I'm just going to do a one pass off all the folder
 		for (int i = 0; i < this.numFiles; ++i) {
 			this.receiveNextFile();
+			this.advanceToNextFile();
 		}
 	}
 	
 	private void receiveNextFile() {
-		FileOutputStream fos = null;
+		//To write the file into the HD
 		BufferedOutputStream bos = null;
-		InputStream is = null;
+		//For receiving the file from server
+		DataInputStream dis = null;
 		
 		//Open stream for this file
 		try {
-			is = clientSocket.getInputStream();
-			fos = new FileOutputStream(getFileName());
-			bos = new BufferedOutputStream(fos);
+			if (this.clientSocket == null) {
+				System.out.println("Something very wrong! Did you connect first?");
+			}
+			dis = new DataInputStream(new BufferedInputStream(this.clientSocket.getInputStream()));
+			bos = new BufferedOutputStream(new FileOutputStream(getFileName()));
 		} catch (IOException e) {
 			System.out.println("Error trying to receive file: " + getFileName());
 			e.printStackTrace();
 		}
 		
-		//Read file by chunks
+		//Receive the file
 		try {
-			int fileSize = 100;
-			int bytesRead = is.read(this.memChunck, 0, memChunck.length);
-	        int current = bytesRead;
-	        //Recreate file 
-	        do {          	
-	        	bytesRead = is.read(this.memChunck, current, this.memChunck.length - current);
-	        	if (bytesRead >= 0) current += bytesRead;
-	        } while(bytesRead > -1);
-	        
-	        bos.write(this.memChunck, 0, current);
+			long fileSize = dis.readLong();
+			int currentBytesRead = 0;
+			int bytesRead = 0;
+			//Read the file by chunks
+			do {
+				bytesRead = dis.read(buffer, currentBytesRead, Math.min(this.buffer.length - currentBytesRead, (int)fileSize - currentBytesRead));
+				if (bytesRead >= 0) {
+					currentBytesRead += bytesRead;
+				}
+			} while(currentBytesRead < fileSize);
+			
+//			int bytesRead = is.read(this.buffer, 0, buffer.length);
+//	        int current = bytesRead;
+//	        //Recreate file 
+//	        do {          	
+//	        	bytesRead = is.read(this.buffer, current, Math.min(this.buffer.length - current, fileSize -current));
+//	        	if (bytesRead >= 0) {
+//	        		current += bytesRead;
+//	        	}
+//	        } while(bytesRead > -1); //current < fileSize OR current != fileSize
+			
+	        //Write file into the HD
+	        bos.write(this.buffer, 0, currentBytesRead);
 	        bos.flush();
 		} catch (IOException e) {
 			System.out.println("Error trying to receive file");
@@ -143,7 +162,6 @@ public class ImageClient {
 		//Closing stream for this file
 		try {
 			bos.close();
-			fos.close();
 		} catch (IOException e) {
 			System.out.println("Error trying to close current file connection");
 			e.printStackTrace();
@@ -172,7 +190,7 @@ public class ImageClient {
 	}
 	
 	private String getFileName() {
-		return this.basename + String.format("%03d", currentFile);
+		return this.getFolder() + File.separatorChar + this.basename + String.format("%03d", currentFile) + ".png";
 	}
 	
 	private void advanceToNextFile() {

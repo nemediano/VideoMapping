@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -23,6 +24,7 @@ public class ImageServer {
 		setAddress(address);
 		setPort(port);
 		setFolder(folder);
+		clients = new ArrayList<>();
 	}
 	
 	public ImageServer(String folder) {
@@ -34,6 +36,7 @@ public class ImageServer {
 		}
 		setPort(8888);
 		setFolder(folder);
+		clients = new ArrayList<>();
 	}
 	
 	public ImageServer() {
@@ -45,6 +48,7 @@ public class ImageServer {
 		}
 		setPort(8888);
 		setFolder("data" + File.separatorChar);
+		clients = new ArrayList<>();
 	}
 	
 	public void start() {
@@ -84,13 +88,17 @@ public class ImageServer {
 		if (handler != null) {
 			clients.add(handler);
 			clientsNumber++;
+			System.out.println("New client conected");
 		}
 	}
 	
 	private void serve(ClientHandler client) {
-		int index = client.nextElement();
+		int index = 0;
 		try {
-			client.sendFile(filesToSend[index]);
+			for (int i = 0; i < this.filesToSend.length; ++i) {
+				index = client.nextElement();
+				client.sendFile(filesToSend[index]);
+			}		
 			
 		} catch (IOException e) {
 			System.out.println("Could not sent the file: " + filesToSend[index].getAbsolutePath());
@@ -168,7 +176,7 @@ public class ImageServer {
 	
 	static final FilenameFilter IMAGE_FILTER = new FilenameFilter() {
 		final String[] EXTENSIONS = new String[]{
-		        "jpg", "png" // and other formats you need
+		        "png" // and other formats you need
 		    };
         @Override
         public boolean accept(final File dir, final String name) {

@@ -1,10 +1,11 @@
 package videomap;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.Socket;
 
 public class ClientHandler {
@@ -16,8 +17,7 @@ public class ClientHandler {
 		if (conection != null) {
 			this.conection = conection;
 		}
-		setTotalFiles(2);
-		
+		setTotalFiles(4);
 	}
 	
 	public ClientHandler(Socket conection, int totalFiles) {
@@ -29,27 +29,31 @@ public class ClientHandler {
 	}
 	
 	public boolean sendFile(File file) throws IOException {
+		BufferedInputStream bis = null; //To read file from HD
+		DataOutputStream dos = null; //For sending file over the network
+		
 		if (!file.isFile() || !file.canRead()) {
 			System.out.println("Could not read the file: " + file.getAbsolutePath());
 			return false;
 		}
 		//Prepare to send
 		byte[] memChunk = new byte[(int) file.length()];
-        FileInputStream fis = new FileInputStream(file);
-        BufferedInputStream bis = new BufferedInputStream(fis);
+        bis = new BufferedInputStream(new FileInputStream(file));
         bis.read(memChunk,0,memChunk.length);
-        OutputStream os = conection.getOutputStream();
+        dos = new DataOutputStream(new BufferedOutputStream(conection.getOutputStream()));
         
         //Send
-        os.write(memChunk, 0, memChunk.length);
-        os.flush();
-		//Register the send
+        //First send the file size 
+        dos.writeLong(file.length());
+        dos.flush();
+        //Now send the file
+        dos.write(memChunk, 0, memChunk.length);
+        dos.flush();
+		//Register the file you just send, advance counter
         incrementCounter();
 		
         //Clean
-		os.close();
 		bis.close();
-		fis.close();
 		
 		return true;
 	}
