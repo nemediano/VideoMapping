@@ -5,8 +5,8 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -24,6 +24,7 @@ public class ImageServer {
 		setAddress(address);
 		setPort(port);
 		setFolder(folder);
+		clients = new ArrayList<>();
 	}
 	
 	public ImageServer(String folder) {
@@ -35,9 +36,10 @@ public class ImageServer {
 		}
 		setPort(8888);
 		setFolder(folder);
+		clients = new ArrayList<>();
 	}
 	
-	public ImageServer(Socket conection) {
+	public ImageServer() {
 		try {
 			setAddress(Inet4Address.getLocalHost().getHostAddress());
 		} catch (UnknownHostException e) {
@@ -46,35 +48,39 @@ public class ImageServer {
 		}
 		setPort(8888);
 		setFolder("data" + File.separatorChar);
+		clients = new ArrayList<>();
 	}
 	
 	public void start() {
-		boolean listening = true;
+		//boolean listening = true;
 		try  {
 			server = new ServerSocket(port);
 			System.out.println("Image server at: " + this.address);
-			System.out.println("Listening on port: " + this.port);
+			System.out.println("Transmiting on port: " + this.port);
 			System.out.println("Looking at folder: " + this.folder.getAbsolutePath());
 			updateFileList();
 			System.out.println("There are " + filesToSend.length + " files");
-            while (listening) {
+            //while (listening) {
             	//This is the magic, waits until new client
-                ClientHandler client = new ClientHandler(server.accept());
+            ClientHandler client = new ClientHandler(server.accept(), filesToSend.length);
                 
-                //Add client to collection
-                addClient(client);
-                //Loop the collection serving as long as we had client
-                updateFileList();
-                for (ClientHandler c : clients) {
-                	serve(c);
-                }
-                
-                //termination criteria
-                if (!hasClients()) {
-                	System.out.println("No more clients shouting down server...");
-                	listening = false;
-                }
-            }
+            //Add client to collection
+            addClient(client);
+            //Loop the collection serving as long as we had client
+            updateFileList();
+            //for (ClientHandler c : clients) {
+            	
+        	while(true) {
+        		serve(client);
+        		Thread.sleep(40);
+        	}
+            
+            
+            //termination criteria
+            //if (!hasClients()) {
+            //	System.out.println("No more clients shouting down server...");
+            //	listening = false;
+            //}
         } catch (IOException e) {
             System.err.println("Could not listen on port " + port);
             System.exit(-1);
@@ -85,12 +91,15 @@ public class ImageServer {
 		if (handler != null) {
 			clients.add(handler);
 			clientsNumber++;
+			System.out.println("New client conected");
 		}
 	}
 	
 	private void serve(ClientHandler client) {
-		int index = client.nextElement();
+		int index = 0;
 		try {
+			
+			index = client.nextElement();
 			client.sendFile(filesToSend[index]);
 			
 		} catch (IOException e) {
@@ -141,12 +150,16 @@ public class ImageServer {
 				"([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
 				"([01]?\\d\\d?|2[0-4]\\d|25[0-5])$";
 		final Pattern pattern = Pattern.compile(IPADDRESS_PATTERN);
-	    if (pattern.matcher(addres).matches()) {
+	    if (addres != null && pattern.matcher(addres).matches()) {
 	        this.address = addres;
 	    }
 	}
 	
 	private void setFolder (String folder) {
+		if (folder == null) {
+			System.out.println("Invalid folder");
+			return;
+		}
 		File file = new File(folder);
 		if (file.exists() && file.canRead()) {
 			this.folder = new File(folder);
@@ -165,7 +178,7 @@ public class ImageServer {
 	
 	static final FilenameFilter IMAGE_FILTER = new FilenameFilter() {
 		final String[] EXTENSIONS = new String[]{
-		        "jpg", "png" // and other formats you need
+		        "png" // and other formats you need
 		    };
         @Override
         public boolean accept(final File dir, final String name) {
@@ -177,6 +190,4 @@ public class ImageServer {
             return (false);
         }
     };
-    //In bytes, the default is quarter MB
-    static final int chunkSize = 1024 * 1024 / 4; 
 }

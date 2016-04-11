@@ -20,7 +20,7 @@ public class ImageClient {
 	private int currentFile;
 	private Socket clientSocket;
 	private byte[] buffer;
-	private static int BUFFER_SIZE = (int) (1024 * 1024 * 1.0);
+	private static int BUFFER_SIZE = (int) (1024 * 1024 * 1.5);
 	
 	public ImageClient(String address, int port, String folder, int totalFiles, String baseName) {
 		setAddress(address);

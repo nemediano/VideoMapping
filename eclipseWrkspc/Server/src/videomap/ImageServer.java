@@ -72,6 +72,7 @@ public class ImageServer {
             	
         	while(true) {
         		serve(client);
+        		Thread.sleep(40);
         	}
             
             
@@ -80,7 +81,7 @@ public class ImageServer {
             //	System.out.println("No more clients shouting down server...");
             //	listening = false;
             //}
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             System.err.println("Could not listen on port " + port);
             System.exit(-1);
         }
