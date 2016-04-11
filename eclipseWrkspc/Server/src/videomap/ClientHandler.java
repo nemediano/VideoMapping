@@ -8,12 +8,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-public class ClientHandler {
+public class ClientHandler extends Thread {
 	private Socket conection;
 	private int nextFile;
 	private int totalFiles;
+	private File[] filesToSend;
 	
 	public ClientHandler(Socket conection) {
+		super("VM Image server thread");
 		if (conection != null) {
 			this.conection = conection;
 		}
@@ -21,11 +23,33 @@ public class ClientHandler {
 	}
 	
 	public ClientHandler(Socket conection, int totalFiles) {
+		super("VM Image server thread");
 		if (conection != null) {
 			this.conection = conection;
 		}
 		setTotalFiles(totalFiles);
 		
+	}
+	
+	public void run () {
+		while (true) {
+			try {
+				this.nextElement();
+				this.sendFile(filesToSend[nextFile]);
+				Thread.sleep(40);
+			} catch (IOException | InterruptedException e) {
+				System.out.println("Exception in client handler thread");
+				System.out.println(e.getMessage());
+				//e.printStackTrace();
+				break;
+			}
+		}
+	}
+	
+	public void setFilesToSend(File[] filesToSend) {
+		if (filesToSend != null && filesToSend.length != 0 ) {
+			this.filesToSend = filesToSend;
+		}
 	}
 	
 	public boolean sendFile(File file) throws IOException {

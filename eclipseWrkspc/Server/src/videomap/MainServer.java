@@ -2,6 +2,11 @@ package videomap;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.Enumeration;
 
 public class MainServer {
     
@@ -11,6 +16,7 @@ public class MainServer {
 
     public static void main(String[] args) throws InterruptedException, IOException {
         parseArguments(args);
+        printNetworkInterfaces();
         
         ImageServer myServer = new ImageServer(internetAdress, port, folder);
     	
@@ -56,6 +62,21 @@ public class MainServer {
     
     public static void printUsage() {
     	System.out.println("java -jar VMServer.jar [-f <path-to-image-folder>] [-p port]"); 
+    }
+    
+    @SuppressWarnings("static-access")
+	public static void printNetworkInterfaces() throws SocketException, UnknownHostException {
+    	Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();
+    	while(e.hasMoreElements())
+    	{
+    	    NetworkInterface n = (NetworkInterface) e.nextElement();
+    	    Enumeration<InetAddress> ee = n.getInetAddresses();
+    	    while (ee.hasMoreElements())
+    	    {
+    	        InetAddress i = (InetAddress) ee.nextElement();
+    	        System.out.println(i.getLocalHost());
+    	    }
+    	}
     }
     
 }
