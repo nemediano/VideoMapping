@@ -29,11 +29,13 @@ float val1,val2,val3,val4;
 int QUEUE_SIZE = 4;
 int currentFrame;
 String baseName = "image-";
+int imgSize = 512;
 
 void setup(){
-size(400,400,OPENGL);
+  size(imgSize,imgSize,OPENGL);
   cam = new GSCapture(this, 640, 480);
   cam.start();
+  
   if (andruinoThere) {
      arduino = new Arduino(this, Arduino.list()[5], 57600);
      arduino.pinMode(Xcv[0], Arduino.INPUT);
@@ -43,6 +45,7 @@ size(400,400,OPENGL);
      arduino.pinMode(Ycv[1], Arduino.INPUT);
      arduino.pinMode(Ycv[2], Arduino.INPUT);
   }
+  
   stroke(255);
   strokeWeight(0.5);
   A = new PVector(0, 44);
@@ -51,6 +54,7 @@ size(400,400,OPENGL);
   D = new PVector(370, 0);
   E = new PVector(370, 44);
   F = new PVector(512, 44);
+  
   currentFrame = 0;
 }
 
