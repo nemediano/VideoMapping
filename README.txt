@@ -18,13 +18,20 @@ The order to start the programs:
 	Wait to see if they sincronize at least two cycles (If they don't restart, change queue size)
 
 
-4.- Start Processing client on the client machine (use Processing 3, preferable)
+4.- Start Processing client on the client machine (use Processing 3, preferable better exception handling)
 Before start make sure:
 	1.- Java client is stable
 	2.- data folder exist and have a failSafe.png image
 	3.- Queue size coincides with the number pass on java Client
 	4.- data is populated
 
+	
+	
+In case of disconnection
+In client machine form terminal stop process CRTL+C (On Mac). Restart Client
+	java -jar VMClient.jar -n 20
+	(This command should be in history hit key UP)
+Restart of the processing sketch might or might be not needed
 	
 To compile java programs w/o using Eclipse (Example using Server, change name for Client)
 	1.- Navigate to src directory
