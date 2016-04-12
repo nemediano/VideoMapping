@@ -45,18 +45,18 @@ void setup(){
    background(0);
    currentImage = 0;
    //back buffer load a fail safe image
-   backBuffer = loadImage("failSafe.png");
+   backBuffer = loadImage("failSafe.jpg");
 }
 
 void draw(){
   //Load a single texture per frame. The 3, is the number of digits in the image number format
-  frontBuffer = loadImage(baseName + nf(currentImage, 3) + ".png");
+  frontBuffer = loadImage(baseName + nf(currentImage, 3) + ".jpg");
   //Or fail some how, use previous frame
   if (frontBuffer == null) {
     if (backBuffer != null) {
       textureMap = backBuffer;
     } else {
-      textureMap = loadImage("failSafe.png");
+      textureMap = loadImage("failSafe.jpg");
     }
   } else { //Use the frame you just got
     textureMap = frontBuffer;

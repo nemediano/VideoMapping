@@ -19,12 +19,13 @@ public class ImageServer {
 	private int clientsNumber;
 	private ServerSocket server;
 	private List<ClientHandler> clients;
+	private int waitingTime;
 	
 	public ImageServer(String address, int port, String folder) {
 		setAddress(address);
 		setPort(port);
 		setFolder(folder);
-		clients = new ArrayList<>();
+		clients = new ArrayList<ClientHandler>();
 	}
 	
 	public ImageServer(String folder) {
@@ -36,7 +37,7 @@ public class ImageServer {
 		}
 		setPort(8888);
 		setFolder(folder);
-		clients = new ArrayList<>();
+		clients = new ArrayList<ClientHandler>();
 	}
 	
 	public ImageServer() {
@@ -48,7 +49,7 @@ public class ImageServer {
 		}
 		setPort(8888);
 		setFolder("data" + File.separatorChar);
-		clients = new ArrayList<>();
+		clients = new ArrayList<ClientHandler>();
 	}
 	
 	public void start() {
@@ -56,27 +57,28 @@ public class ImageServer {
 		try  {
 			server = new ServerSocket(port);
 			System.out.println("Image server at: " + this.address);
-			System.out.println("Listening on port: " + this.port);
+			System.out.println("Transmiting on port: " + this.port);
 			System.out.println("Looking at folder: " + this.folder.getAbsolutePath());
 			updateFileList();
 			System.out.println("There are " + filesToSend.length + " files");
             while (listening) {
-            	//This is the magic, waits until new client
-                ClientHandler client = new ClientHandler(server.accept());
-                
-                //Add client to collection
-                addClient(client);
-                //Loop the collection serving as long as we had client
-                updateFileList();
-                for (ClientHandler c : clients) {
-                	serve(c);
-                }
-                
-                //termination criteria
-                if (!hasClients()) {
-                	System.out.println("No more clients shouting down server...");
-                	listening = false;
-                }
+	           	//This is the magic, waits until new client
+	            ClientHandler client = new ClientHandler(server.accept(), filesToSend.length);
+	                
+	            //Add client to collection
+	            addClient(client);
+	            //Loop the collection serving as long as we had client
+	            updateFileList();
+	            client.setFilesToSend(filesToSend);
+	            client.setWaitTime(this.waitingTime);
+	            	
+	        	client.start();
+	            	            
+	           //termination criteria
+	            if (!hasClients()) {
+	            	System.out.println("No more clients shouting down server...");
+	            	listening = false;
+	            }
             }
         } catch (IOException e) {
             System.err.println("Could not listen on port " + port);
@@ -92,14 +94,13 @@ public class ImageServer {
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	private void serve(ClientHandler client) {
-		
+		int index = 0;
 		try {
-			for (int i = 0; i < this.filesToSend.length; ++i) {
-				int index = client.nextElement();
-				client.sendFile(filesToSend[index]);
-			}
 			
+			index = client.nextElement();
+			client.sendFile(filesToSend[index]);
 			
 		} catch (IOException e) {
 			System.out.println("Could not sent the file: " + filesToSend[index].getAbsolutePath());
@@ -175,9 +176,15 @@ public class ImageServer {
 		}
 	}
 	
+	public void setWaitingTime(int miliseconds) {
+		if (miliseconds > 0) {
+			this.waitingTime = miliseconds;
+		}
+	}
+	
 	static final FilenameFilter IMAGE_FILTER = new FilenameFilter() {
 		final String[] EXTENSIONS = new String[]{
-		        "jpg", "png" // and other formats you need
+		        "png" // and other formats you need
 		    };
         @Override
         public boolean accept(final File dir, final String name) {

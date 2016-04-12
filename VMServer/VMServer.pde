@@ -100,7 +100,7 @@ void draw(){
   text(alphavid,100,100);
   
   //Saving the frame to HD
-  save(baseName + nf(currentFrame, 2) + ".png");
+  save(baseName + nf(currentFrame, 2) + ".jpg");
   currentFrame++;
   currentFrame %= QUEUE_SIZE;
 }

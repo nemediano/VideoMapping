@@ -184,7 +184,7 @@ public class ImageServer {
 	
 	static final FilenameFilter IMAGE_FILTER = new FilenameFilter() {
 		final String[] EXTENSIONS = new String[]{
-		        "png" // and other formats you need
+		        "jpg" // and other formats you need
 		    };
         @Override
         public boolean accept(final File dir, final String name) {

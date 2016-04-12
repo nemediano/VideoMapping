@@ -198,7 +198,7 @@ public class ImageClient {
 	}
 	
 	private String getFileName() {
-		return this.getFolder() + File.separatorChar + this.basename + String.format("%03d", currentFile) + ".png";
+		return this.getFolder() + File.separatorChar + this.basename + String.format("%03d", currentFile) + ".jpg";
 	}
 	
 	private void advanceToNextFile() {
