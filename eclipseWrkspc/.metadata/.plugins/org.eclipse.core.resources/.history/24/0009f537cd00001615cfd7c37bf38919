@@ -25,7 +25,7 @@ public class ImageServer {
 		setAddress(address);
 		setPort(port);
 		setFolder(folder);
-		clients = new ArrayList<ClientHandler>();
+		clients = new ArrayList<>();
 	}
 	
 	public ImageServer(String folder) {
@@ -37,7 +37,7 @@ public class ImageServer {
 		}
 		setPort(8888);
 		setFolder(folder);
-		clients = new ArrayList<ClientHandler>();
+		clients = new ArrayList<>();
 	}
 	
 	public ImageServer() {
@@ -49,7 +49,7 @@ public class ImageServer {
 		}
 		setPort(8888);
 		setFolder("data" + File.separatorChar);
-		clients = new ArrayList<ClientHandler>();
+		clients = new ArrayList<>();
 	}
 	
 	public void start() {
