@@ -1,10 +1,13 @@
 import processing.opengl.*; 
 
-PImage textureMap; 
+PImage backBuffer;
+PImage frontBuffer;
+
+PImage textureMap;
 PVector A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X;
 
 //Related to the texture loading
-int QUEUE_SIZE = 88;
+int QUEUE_SIZE = 20;
 int currentImage;
 String baseName = "img-";
 
@@ -36,16 +39,30 @@ void setup(){
    W = new PVector(781,458);
    X = new PVector(781,319);
    //Texture coordinates are beetween [0, 1]
-   textureMode(NORMALIZED);
-   
+   textureMode(NORMAL);
+   frameRate(10);
    //Clean the screen just at the begining for performance
    background(0);
    currentImage = 0;
+   //back buffer load a fail safe image
+   backBuffer = loadImage("failSafe.png");
 }
 
 void draw(){
   //Load a single texture per frame. The 3, is the number of digits in the image number format
-  textureMap = loadImage(baseName + nf(currentImage, 3) + ".png");
+  frontBuffer = loadImage(baseName + nf(currentImage, 3) + ".png");
+  //Or fail some how, use previous frame
+  if (frontBuffer == null) {
+    if (backBuffer != null) {
+      textureMap = backBuffer;
+    } else {
+      textureMap = loadImage("failSafe.png");
+    }
+  } else { //Use the frame you just got
+    textureMap = frontBuffer;
+  }
+  
+  
   //Image processing if needed
   //tint(255,255,255,200);
   
@@ -139,9 +156,7 @@ void draw(){
     vertex(F.x,F.y);
   endShape(CLOSE);
   
+  backBuffer = frontBuffer;
   currentImage++;
   currentImage %= QUEUE_SIZE;
 }
-
-
-

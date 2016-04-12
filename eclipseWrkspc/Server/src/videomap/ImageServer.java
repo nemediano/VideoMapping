@@ -19,6 +19,7 @@ public class ImageServer {
 	private int clientsNumber;
 	private ServerSocket server;
 	private List<ClientHandler> clients;
+	private int waitingTime;
 	
 	public ImageServer(String address, int port, String folder) {
 		setAddress(address);
@@ -69,6 +70,7 @@ public class ImageServer {
 	            //Loop the collection serving as long as we had client
 	            updateFileList();
 	            client.setFilesToSend(filesToSend);
+	            client.setWaitTime(this.waitingTime);
 	            	
 	        	client.start();
 	            	            
@@ -171,6 +173,12 @@ public class ImageServer {
 	private void updateFileList() {
 		if (folder.isDirectory()) {
 			filesToSend = folder.listFiles(IMAGE_FILTER);
+		}
+	}
+	
+	public void setWaitingTime(int miliseconds) {
+		if (miliseconds > 0) {
+			this.waitingTime = miliseconds;
 		}
 	}
 	

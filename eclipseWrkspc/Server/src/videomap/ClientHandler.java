@@ -13,6 +13,7 @@ public class ClientHandler extends Thread {
 	private int nextFile;
 	private int totalFiles;
 	private File[] filesToSend;
+	private int waitTime;
 	
 	public ClientHandler(Socket conection) {
 		super("VM Image server thread");
@@ -20,6 +21,7 @@ public class ClientHandler extends Thread {
 			this.conection = conection;
 		}
 		setTotalFiles(2);
+		setWaitTime(40);
 	}
 	
 	public ClientHandler(Socket conection, int totalFiles) {
@@ -28,7 +30,7 @@ public class ClientHandler extends Thread {
 			this.conection = conection;
 		}
 		setTotalFiles(totalFiles);
-		
+		setWaitTime(40);
 	}
 	
 	public void run () {
@@ -36,9 +38,15 @@ public class ClientHandler extends Thread {
 			try {
 				this.nextElement();
 				this.sendFile(filesToSend[nextFile]);
-				Thread.sleep(40);
+				Thread.sleep(waitTime);
 			} catch (IOException | InterruptedException e) {
-				System.out.println("Exception in client handler thread");
+				System.out.println("Client got disconected!");
+				try {
+					this.conection.close();
+				} catch (IOException e1) {
+					System.out.println("Could not close connection!");
+					//e1.printStackTrace();
+				}
 				System.out.println(e.getMessage());
 				//e.printStackTrace();
 				break;
@@ -98,6 +106,12 @@ public class ClientHandler extends Thread {
 	public void setTotalFiles(int filesNumber) {
 		if (filesNumber > 0) {
 			this.totalFiles = filesNumber;
+		}
+	}
+	
+	public void setWaitTime(int miliseconds) {
+		if (miliseconds > 0) {
+			this.waitTime = miliseconds;
 		}
 	}
 }

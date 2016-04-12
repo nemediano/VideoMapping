@@ -102,7 +102,13 @@ public class ImageClient {
 	
 	public void receiveFile() {
 		this.receiveNextFile();
-		this.advanceToNextFile();	
+//		try {
+//			Thread.sleep(40);
+//		} catch (InterruptedException e) {
+//			System.out.println("Could not stop this thread");
+//			//e.printStackTrace();
+//		}
+		this.advanceToNextFile();
 	}
 	
 	private void receiveNextFile() {
@@ -150,9 +156,9 @@ public class ImageClient {
 	        //Write file into the HD
 	        bos.write(this.buffer, 0, currentBytesRead);
 	        bos.flush();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			System.out.println("Error trying to receive file");
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 		
 		

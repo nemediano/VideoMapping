@@ -13,6 +13,7 @@ public class MainServer {
     static String internetAdress = "127.0.0.1";
     static int port = 8888;
     static String folder = "data" + File.separatorChar;
+    static int miliseconds = 40;
 
     public static void main(String[] args) throws InterruptedException, IOException {
         parseArguments(args);
@@ -44,9 +45,8 @@ public class MainServer {
     				printUsage();
     				System.exit(-1);
     			}
-    		}
-    		//Look if they give me the folder
-    		if (args[i].equalsIgnoreCase("-f")) {
+    			//Lock if they give me the folder
+    		} else if (args[i].equalsIgnoreCase("-f")) {
     			//See the next sentence
     			if ((i + 1) < args.length) {
     				folder = args[i + 1];
@@ -55,7 +55,27 @@ public class MainServer {
     				printUsage();
     				System.exit(-1);
     			}
+    		} else if (args[i].equalsIgnoreCase("-w")) {
+    			//See the next sentence
+    			if ((i + 1) < args.length) {
+    				try {
+    					miliseconds = Integer.parseInt(args[i + 1]);
+    					++i;
+    				} catch (NumberFormatException e) {
+    					printUsage();
+    					System.exit(-1);
+    				}
+    				
+    			} else {
+    				printUsage();
+    				System.exit(-1);
+    			}
+    		} else {
+    			System.out.println("Unknown argument");
+    			printUsage();
+    			System.exit(-1);
     		}
+    		
     	}
     	
     }

@@ -1,7 +1,7 @@
 //import cc.arduino.*;
-import processing.serial.*;
+//import processing.serial.*;
 import processing.opengl.*;
-import codeanticode.gsvideo.*;
+//import codeanticode.gsvideo.*;
 
 //Arduino arduino;
 //GSCapture cam;
@@ -26,24 +26,25 @@ float val1,val2,val3,val4;
 
 
 //For the image server
-int QUEUE_SIZE = 4;
+int QUEUE_SIZE = 20;
 int currentFrame;
-String baseName = "image-";
-int imgSize = 512;
+String baseName = "data/image-";
+int imgSize = 400;
 
 void setup(){
   size(imgSize,imgSize,OPENGL);
-  cam = new GSCapture(this, 640, 480);
-  cam.start();
+  frameRate(24);
+  //cam = new GSCapture(this, 640, 480);
+  //cam.start();
   
   if (andruinoThere) {
-     arduino = new Arduino(this, Arduino.list()[5], 57600);
-     arduino.pinMode(Xcv[0], Arduino.INPUT);
-     arduino.pinMode(Ycv[0], Arduino.INPUT);
-     arduino.pinMode(Xcv[1], Arduino.INPUT);
-     arduino.pinMode(Xcv[2], Arduino.INPUT);
-     arduino.pinMode(Ycv[1], Arduino.INPUT);
-     arduino.pinMode(Ycv[2], Arduino.INPUT);
+     //arduino = new Arduino(this, Arduino.list()[5], 57600);
+     //arduino.pinMode(Xcv[0], Arduino.INPUT);
+     //arduino.pinMode(Ycv[0], Arduino.INPUT);
+     //arduino.pinMode(Xcv[1], Arduino.INPUT);
+     //arduino.pinMode(Xcv[2], Arduino.INPUT);
+     //arduino.pinMode(Ycv[1], Arduino.INPUT);
+     //arduino.pinMode(Ycv[2], Arduino.INPUT);
   }
   
   stroke(255);
@@ -60,15 +61,15 @@ void setup(){
 
 void draw(){
    lights();
-   cam.read();
+   //cam.read();
     
   ambientLight(val3%255,val2%255,val1%255);
   //assign minigorille or noise variables
    if (andruinoThere) { // adjust ranges again?
-    val1=map(arduino.analogRead(Xcv[0]), 0, 1023, 0, height);//ambient
-    val3=map(arduino.analogRead(Ycv[0]), 0, 1023, 10, height); //percussive
-    val2=map(noise(xoff), 0, 1, 0,val3); //noise version of val3
-    val4=map(arduino.analogRead(Xcv[1]), 0, 1023, 10, height);
+    //val1=map(arduino.analogRead(Xcv[0]), 0, 1023, 0, height);//ambient
+    //val3=map(arduino.analogRead(Ycv[0]), 0, 1023, 10, height); //percussive
+    //val2=map(noise(xoff), 0, 1, 0,val3); //noise version of val3
+    //val4=map(arduino.analogRead(Xcv[1]), 0, 1023, 10, height);
   }
   if (!andruinoThere){ 
     val2=map(noise(xoff), 0, 1, 0,220);
@@ -93,7 +94,7 @@ void draw(){
    
   xoff += random(-0.5,0.5);
   tint(255,255,255,alphavid);
-  image(cam, 0, 0,width,height);
+  //image(cam, 0, 0,width,height);
   
   tint(255,255,255,255);
   text(alphavid,100,100);
