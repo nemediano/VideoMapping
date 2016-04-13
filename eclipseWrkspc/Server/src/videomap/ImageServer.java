@@ -94,20 +94,6 @@ public class ImageServer {
 		}
 	}
 	
-	@SuppressWarnings("unused")
-	private void serve(ClientHandler client) {
-		int index = 0;
-		try {
-			
-			index = client.nextElement();
-			client.sendFile(filesToSend[index]);
-			
-		} catch (IOException e) {
-			System.out.println("Could not sent the file: " + filesToSend[index].getAbsolutePath());
-			e.printStackTrace();
-		}
-	}
-	
 	public void stop() throws IOException {
 		server.close();
 	}

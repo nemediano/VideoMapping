@@ -13,7 +13,7 @@ public class MainServer {
     static String internetAdress = "127.0.0.1";
     static int port = 8888;
     static String folder = "data" + File.separatorChar;
-    static int miliseconds = 40;
+    static int miliseconds = 200;
 
     public static void main(String[] args) throws InterruptedException, IOException {
         parseArguments(args);

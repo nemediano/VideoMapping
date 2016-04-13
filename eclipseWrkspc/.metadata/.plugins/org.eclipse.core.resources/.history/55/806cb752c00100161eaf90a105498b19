@@ -1,0 +1,169 @@
+package videomap;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+//import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.net.Socket;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.file.Files;
+import static java.nio.file.StandardCopyOption.*;
+
+public class ClientHandler extends Thread {
+	private Socket conection;
+	private int nextFile;
+	private int totalFiles;
+	private File[] filesToSend;
+	private int waitTime;
+	
+	public ClientHandler(Socket conection) {
+		super("VM Image server thread");
+		if (conection != null) {
+			this.conection = conection;
+		}
+		setTotalFiles(2);
+		setWaitTime(40);
+	}
+	
+	public ClientHandler(Socket conection, int totalFiles) {
+		super("VM Image server thread");
+		if (conection != null) {
+			this.conection = conection;
+		}
+		setTotalFiles(totalFiles);
+		setWaitTime(40);
+	}
+	
+	public void run () {
+		while (true) {
+			try {
+				this.nextElement();
+				this.sendFile(filesToSend[nextFile]);
+				Thread.sleep(waitTime);
+			} catch (Exception e) {
+				System.out.println("Client got disconected!");
+				try {
+					this.conection.close();
+				} catch (IOException e1) {
+					System.out.println("Could not close connection!");
+					//e1.printStackTrace();
+				}
+				System.out.println(e.getMessage());
+				//e.printStackTrace();
+				break;
+			}
+		}
+	}
+	
+	public void setFilesToSend(File[] filesToSend) {
+		if (filesToSend != null && filesToSend.length != 0 ) {
+			this.filesToSend = filesToSend;
+		}
+	}
+	
+	public boolean sendFile(File file) throws IOException {
+		BufferedInputStream bis = null; //To read file from HD
+		DataOutputStream dos = null; //For sending file over the network
+		//DataInputStream dis = null;
+		String tmpFileName;
+		File tmpFile;
+		if (!file.isFile() || !file.canRead()) {
+			System.out.println("Could not read the file: " + file.getAbsolutePath());
+			return false;
+		} else { //Lock the file move it and unlocked
+			FileChannel channel = new RandomAccessFile(file, "rw").getChannel();
+
+	        // Use the file channel to create a lock on the file.
+	        // This method blocks until it can retrieve the lock.
+	        FileLock lock = channel.lock();
+	        tmpFileName = file.getName() + ".tmp";
+	        tmpFile = new File(tmpFileName);
+	        //Files.copy(file.getAbsolutePath(), tmpFile.getAbsolutePath(), REPLACE_EXISTING);
+		}
+		
+		//Prepare to send
+		byte[] memChunk = new byte[(int) file.length()];
+        bis = new BufferedInputStream(new FileInputStream(file));
+        bis.read(memChunk,0,memChunk.length);
+        dos = new DataOutputStream(new BufferedOutputStream(conection.getOutputStream()));
+        //dis = new DataInputStream(new BufferedInputStream(conection.getInputStream()));
+        //Send
+        //First send the file size 
+        dos.writeLong(file.length());
+        dos.flush();
+        //Now send the file
+        dos.write(memChunk, 0, memChunk.length);
+        dos.flush();
+        incrementCounter();
+        /*//Wait for the client accuse of recipe
+        int result = dis.readInt();
+        
+		//Register the file you just send, advance counter
+        if (result == 1) {
+        	
+        } else {
+        	System.out.println("Could not send file: " + file.getAbsolutePath());
+        	System.out.println("I'm going to try again");
+        }*/
+        
+		
+        //Clean
+		bis.close();
+		
+		return true;
+	}
+	
+	private void copyFile(File sourceFile, File destFile) throws IOException {
+	    if(!destFile.exists()) {
+	        destFile.createNewFile();
+	    }
+
+	    FileChannel source = null;
+	    FileChannel destination = null;
+
+	    try {
+	        source = new FileInputStream(sourceFile).getChannel();
+	        destination = new FileOutputStream(destFile).getChannel();
+	        destination.transferFrom(source, 0, source.size());
+	    }
+	    finally {
+	        if(source != null) {
+	            source.close();
+	        }
+	        if(destination != null) {
+	            destination.close();
+	        }
+	    }
+	}
+	
+	private void incrementCounter() {
+		nextFile++;
+		nextFile %= totalFiles;
+	}
+	
+	public int nextElement() {
+		return nextFile;
+	}
+	
+	public void disconect() throws IOException {
+		conection.close();
+	}
+	
+	public void setTotalFiles(int filesNumber) {
+		if (filesNumber > 0) {
+			this.totalFiles = filesNumber;
+		}
+	}
+	
+	public void setWaitTime(int miliseconds) {
+		if (miliseconds > 0) {
+			this.waitTime = miliseconds;
+		}
+	}
+}

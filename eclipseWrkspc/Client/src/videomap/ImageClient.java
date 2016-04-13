@@ -3,6 +3,7 @@ package videomap;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -20,6 +21,7 @@ public class ImageClient {
 	private int currentFile;
 	private Socket clientSocket;
 	private byte[] buffer;
+	private int waitingTime;
 	private static int BUFFER_SIZE = (int) (1024 * 1024 * 1.5);
 	
 	public ImageClient(String address, int port, String folder, int totalFiles, String baseName) {
@@ -70,6 +72,9 @@ public class ImageClient {
 		File file = new File(folder);
 		if (file.exists() && file.isDirectory() && file.canWrite()) {
 			this.folder = new File(folder);
+		} else {
+			System.out.println("Invalid folder: " + file.getAbsolutePath());
+			System.exit(-1);
 		}
 	}
 	
@@ -109,6 +114,12 @@ public class ImageClient {
 //			//e.printStackTrace();
 //		}
 		this.advanceToNextFile();
+		try {
+			Thread.sleep(this.waitingTime);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	private void receiveNextFile() {
@@ -116,6 +127,8 @@ public class ImageClient {
 		BufferedOutputStream bos = null;
 		//For receiving the file from server
 		DataInputStream dis = null;
+		//For letting the server now that we have the file
+		//DataOutputStream dos = null;
 		//For making sure at writing
 		String tempFilename = getFileName().substring(0, getFileName().lastIndexOf('.')) + ".tmp";
 		
@@ -134,6 +147,7 @@ public class ImageClient {
 				System.out.println("Something very wrong! Did you connect first?");
 			}
 			dis = new DataInputStream(new BufferedInputStream(this.clientSocket.getInputStream()));
+			//dos = new DataOutputStream(new BufferedOutputStream(this.clientSocket.getOutputStream()));
 			bos = new BufferedOutputStream(new FileOutputStream(tempFilename));
 		} catch (IOException e) {
 			System.out.println("Error trying to receive file: " + getFileName());
@@ -151,8 +165,7 @@ public class ImageClient {
 				if (bytesRead >= 0) {
 					currentBytesRead += bytesRead;
 				}
-			} while(currentBytesRead < fileSize);
-						
+			} while(currentBytesRead < fileSize);			
 	        //Write file into the HD
 	        bos.write(this.buffer, 0, currentBytesRead);
 	        bos.flush();
@@ -169,6 +182,9 @@ public class ImageClient {
 			File tmp = new File(tempFilename);
 			if (tmp.renameTo(new File(getFileName()))) {
 				System.out.println("File received: " + getFileName());
+				//Let the server now that we are ready for the next file
+				//dos.writeInt(1);
+				//dos.flush();
 			}
 		} catch (IOException e) {
 			System.out.println("Error trying to close or writtin the current file");
@@ -195,6 +211,12 @@ public class ImageClient {
 	
 	public String getBasename() {
 		return this.basename;
+	}
+	
+	public void setWaitingTime(int waitingTime) {
+		if (waitingTime > 0) {
+			this.waitingTime = waitingTime;
+		}
 	}
 	
 	private String getFileName() {

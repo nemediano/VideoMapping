@@ -2,11 +2,18 @@ package videomap;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.Socket;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
+
 
 public class ClientHandler extends Thread {
 	private Socket conection;
@@ -30,15 +37,16 @@ public class ClientHandler extends Thread {
 			this.conection = conection;
 		}
 		setTotalFiles(totalFiles);
-		setWaitTime(40);
+		setWaitTime(200);
 	}
 	
 	public void run () {
 		while (true) {
 			try {
-				this.nextElement();
+				this.nextElement();		
 				this.sendFile(filesToSend[nextFile]);
 				Thread.sleep(waitTime);
+				
 			} catch (Exception e) {
 				System.out.println("Client got disconected!");
 				try {
@@ -63,17 +71,55 @@ public class ClientHandler extends Thread {
 	public boolean sendFile(File file) throws IOException {
 		BufferedInputStream bis = null; //To read file from HD
 		DataOutputStream dos = null; //For sending file over the network
+		//DataInputStream dis = null; //For receiving the client recipe
 		
+		String tmpFileName;
+		File tmpFile;
 		if (!file.isFile() || !file.canRead()) {
 			System.out.println("Could not read the file: " + file.getAbsolutePath());
 			return false;
+		} else { 
+			//Lock the file copy it and unlocked
+			try {
+				@SuppressWarnings("resource")
+				FileChannel channel = new RandomAccessFile(file, "rw").getChannel();
+		        // Use the file channel to create a lock on the file.
+		        // This method blocks until it can retrieve the lock.
+		        FileLock lock = channel.lock();
+		        try {
+		            lock = channel.tryLock();
+		        } catch (OverlappingFileLockException e) {
+		            // File is already locked in this thread or virtual machine
+		        }
+		        
+		        tmpFileName = file.getAbsolutePath().substring(0, file.getAbsolutePath().length() - 4) + ".tmp";
+		        tmpFile = new File(tmpFileName);
+		        copyFile(file, tmpFile);
+		        // Release the lock - if it is not null!
+		        if( lock != null ) {
+		            lock.release();
+		        }
+		        
+		        // Release the lock - if it is not null!
+		        if( lock != null ) {
+		            lock.release();
+		        }
+	
+		        // Close the file
+		        channel.close();
+			} catch (IOException e) {
+				System.out.println("Could not lock file: " + file.getAbsolutePath());
+				return false;
+			}
 		}
-		//Prepare to send
-		byte[] memChunk = new byte[(int) file.length()];
-        bis = new BufferedInputStream(new FileInputStream(file));
+		
+		//Prepare to send the tmp file
+		byte[] memChunk = new byte[(int) tmpFile.length()];
+        bis = new BufferedInputStream(new FileInputStream(tmpFile));
+        
         bis.read(memChunk,0,memChunk.length);
         dos = new DataOutputStream(new BufferedOutputStream(conection.getOutputStream()));
-        
+        //dis = new DataInputStream(new BufferedInputStream(conection.getInputStream()));
         //Send
         //First send the file size 
         dos.writeLong(file.length());
@@ -81,13 +127,47 @@ public class ClientHandler extends Thread {
         //Now send the file
         dos.write(memChunk, 0, memChunk.length);
         dos.flush();
-		//Register the file you just send, advance counter
-        incrementCounter();
-		
+        
+        int status = 1;
+        
+        //status = dis.readInt();
+        
+        if (status == 1) {
+        	incrementCounter();
+        } else {
+        	System.out.println("Client lost the file");
+        }
+        
+  
         //Clean
 		bis.close();
+		tmpFile.delete();
 		
 		return true;
+	}
+	
+	@SuppressWarnings("resource")
+	private void copyFile(File sourceFile, File destFile) throws IOException {
+	    if(!destFile.exists()) {
+	        destFile.createNewFile();
+	    }
+
+	    FileChannel source = null;
+	    FileChannel destination = null;
+
+	    try {
+	        source = new FileInputStream(sourceFile).getChannel();
+	        destination = new FileOutputStream(destFile).getChannel();
+	        destination.transferFrom(source, 0, source.size());
+	    }
+	    finally {
+	        if(source != null) {
+	            source.close();
+	        }
+	        if(destination != null) {
+	            destination.close();
+	        }
+	    }
 	}
 	
 	private void incrementCounter() {
